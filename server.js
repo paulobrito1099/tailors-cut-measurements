@@ -29,8 +29,65 @@ const {
   SHOPIFY_APP_SECRET,
   SHOPIFY_STORE_DOMAIN,
   SHOPIFY_ADMIN_TOKEN,
+  SHOPIFY_CLIENT_ID,
+  APP_PUBLIC_URL,
   PORT = 3000,
 } = process.env;
+
+// ---- TEMPORARY: one-time OAuth setup routes --------------------------------
+// Visit /auth/start once (logged into Shopify admin as the store owner) to
+// get your SHOPIFY_ADMIN_TOKEN. Delete these two routes once you have it —
+// they don't need to stay live.
+
+app.get("/auth/start", (req, res) => {
+  const scopes = "read_customers,write_customers";
+  const redirectUri = `${APP_PUBLIC_URL}/auth/callback`;
+  const authUrl =
+    `https://${SHOPIFY_STORE_DOMAIN}/admin/oauth/authorize` +
+    `?client_id=${SHOPIFY_CLIENT_ID}` +
+    `&scope=${scopes}` +
+    `&redirect_uri=${encodeURIComponent(redirectUri)}` +
+    `&state=setup123`;
+  res.redirect(authUrl);
+});
+
+app.get("/auth/callback", async (req, res) => {
+  const { code } = req.query;
+  if (!code) {
+    return res.status(400).send("Missing code — try visiting /auth/start again.");
+  }
+
+  try {
+    const tokenRes = await fetch(
+      `https://${SHOPIFY_STORE_DOMAIN}/admin/oauth/access_token`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          client_id: SHOPIFY_CLIENT_ID,
+          client_secret: SHOPIFY_APP_SECRET,
+          code,
+        }),
+      }
+    );
+    const data = await tokenRes.json();
+
+    if (data.access_token) {
+      res.send(`
+        <h2>Success — copy this token:</h2>
+        <p style="font-family: monospace; background: #eee; padding: 12px; word-break: break-all;">
+          ${data.access_token}
+        </p>
+        <p>Paste this into Railway as the <strong>SHOPIFY_ADMIN_TOKEN</strong> variable, then redeploy.</p>
+        <p>After that, you can delete the /auth/start and /auth/callback routes from server.js.</p>
+      `);
+    } else {
+      res.status(400).send(`<pre>${JSON.stringify(data, null, 2)}</pre>`);
+    }
+  } catch (err) {
+    res.status(500).send(`Error: ${err.message}`);
+  }
+});
 
 // The 14 measurement fields. Keep this list in sync with the metafield
 // definitions you created in Shopify admin (namespace: "measurements").

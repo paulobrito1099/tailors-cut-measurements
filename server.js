@@ -52,6 +52,8 @@ const MEASUREMENT_KEYS = [
   "cuff",
   "shirt_length",
   "embroidered_initials",
+  "length",
+  "width",
 ];
 
 const ADMIN_API_URL = `https://${SHOPIFY_STORE_DOMAIN}/admin/api/2026-04/graphql.json`;

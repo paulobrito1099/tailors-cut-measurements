@@ -35,6 +35,8 @@ const {
 // The 14 measurement fields. Keep this list in sync with the metafield
 // definitions you created in Shopify admin (namespace: "measurements").
 const MEASUREMENT_KEYS = [
+  "height",
+  "weight",
   "full_chest",
   "stomach",
   "bicep",

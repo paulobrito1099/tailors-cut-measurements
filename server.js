@@ -32,7 +32,7 @@ const {
   PORT = 3000,
 } = process.env;
 
-// The 14 measurement fields. Keep this list in sync with the metafield
+// The measurement fields. Keep this list in sync with the metafield
 // definitions you created in Shopify admin (namespace: "measurements").
 const MEASUREMENT_KEYS = [
   "height",
@@ -51,6 +51,7 @@ const MEASUREMENT_KEYS = [
   "collar",
   "cuff",
   "shirt_length",
+  "embroidered_initials",
 ];
 
 const ADMIN_API_URL = `https://${SHOPIFY_STORE_DOMAIN}/admin/api/2026-04/graphql.json`;
@@ -163,7 +164,7 @@ app.post("/save", async (req, res) => {
     ownerId: gid,
     namespace: "measurements",
     key,
-    type: "number_decimal",
+    type: key === "embroidered_initials" ? "single_line_text_field" : "number_decimal",
     value: String(incoming[key]),
   }));
 
